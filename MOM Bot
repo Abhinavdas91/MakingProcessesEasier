@@ -1,0 +1,56 @@
+
+
+import openpyxl
+import pyttsx3
+
+def read_excel_and_speak(file_path):
+    # Load the workbook and select the active sheet
+    workbook = openpyxl.load_workbook(file_path)
+    sheet = workbook.active
+
+    # Initialize the text-to-speech engine
+    engine = pyttsx3.init()
+
+    # Iterate through the rows in column A and read data aloud
+    for row in sheet.iter_rows(min_col=1, max_col=1, values_only=True):
+        cell_value = row[0]
+        if cell_value is not None:
+            print(cell_value)  # Display the cell data in the console
+            engine.say(str(cell_value))  # Send the text to the TTS engine
+
+    # Run the TTS engine
+    engine.runAndWait()
+
+def update_department_updates(file_path):
+    # Load the workbook and select the active sheet
+    workbook = openpyxl.load_workbook(file_path)
+    sheet = workbook.active
+
+    # Departments to check for updates
+    departments = [
+        "HR", "L & D", "Office Updates", "Engineering", "GIF", "Reporting",
+        "Annotation", "Grime", "Activities", "Daily Processing", "AIR",
+        "Operations to Annotation Movement", "Emergent Tech", "ROI", "Finance",
+        "Tech Support", "ICT"
+    ]
+
+    # Prompt user for updates for each department
+    for row_index, department in enumerate(departments, start=1):
+        print(f"Do you have any updates for {department}? (Leave blank if no updates)")
+        update = input(f"Enter update for {department}: ")
+
+        # Write updates to the corresponding row in column B (assuming column A has department names)
+        if update.strip():
+            # Find the row with the department name in column A
+            for row in sheet.iter_rows(min_row=1, max_row=sheet.max_row, min_col=1, max_col=1, values_only=True):
+                if row[0] == department:
+                    sheet.cell(row=row_index, column=2).value = update  # Update column B
+
+    # Save the workbook
+    workbook.save(file_path)
+    print("Updates have been saved to the Excel file.")
+
+# Example usage
+file_path = "C:/Users/abhinav.das/OneDrive - Everseen/Documents/Automation/MoM-Bot/Updated_Daily Call-2024.xlsx"  # Replace with the path to your Excel file
+read_excel_and_speak(file_path)
+update_department_updates(file_path)
