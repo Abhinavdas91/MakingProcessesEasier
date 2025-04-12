@@ -1,0 +1,39 @@
+import pandas as pd
+import os
+
+
+def combine_first_sheets(input_directory, output_directory, output_file_name):
+    # Create a list to store dataframes
+    all_dataframes = []
+
+    # Iterate over all files in the input directory
+    for filename in os.listdir(input_directory):
+        if filename.endswith(".xlsx") or filename.endswith(".xls"):
+            # Construct full file path
+            file_path = os.path.join(input_directory, filename)
+            # Read the first sheet of the current excel file
+            df = pd.read_excel(file_path, sheet_name=0)
+            # Append the dataframe to the list
+            all_dataframes.append(df)
+
+    # Combine all dataframes into a single dataframe
+    combined_df = pd.concat(all_dataframes, ignore_index=True)
+
+    # Construct the full output file path
+    output_file_path = os.path.join(output_directory, output_file_name)
+
+    # Save the combined dataframe to the new excel file
+    combined_df.to_excel(output_file_path, index=False)
+    print(f"Excel files have been combined successfully! Output saved to: {output_file_path}")
+
+
+# Define input directory, output directory, and output file name
+input_directory = r'i/p'
+output_directory = r'o/p'
+output_file_name = 'combined_output.xlsx'
+
+# Ensure output directory exists
+os.makedirs(output_directory, exist_ok=True)
+
+# Call the function to combine first sheets
+combine_first_sheets(input_directory, output_directory, output_file_name)
