@@ -1,0 +1,76 @@
+
+import time
+import thread
+import Adafruit_GPIO.SPI as SPI
+import Adafruit_MAX31855.MAX31855 as MAX31855
+import RPi.GPIO as GPIO
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+GPIO.setup(17,GPIO.OUT)
+import xlsxwriter
+from datetime import datetime
+
+
+# Define a function to convert celsius to fahrenheit.
+def c_to_f(c):
+    return c * 9.0 / 5.0 + 32.0
+
+
+# Raspberry Pi SPI configuration.
+CLK = 25
+CS = 24
+DO = 18
+sensor = MAX31855.MAX31855(CLK, CS, DO)
+
+
+
+timeout_start = time.time()
+
+
+timeout = 10
+
+while time.time() < timeout_start + timeout:
+    test = 0
+    
+    while sensor.readTempC() < 65:
+      GPIO.output(17,GPIO.LOW)
+      print 'Thermocouple Temperature: {0:0.3F}*C / {1:0.3F}*F'.format(sensor.readTempC(), c_to_f(sensor.readTempC()))
+      time.sleep(5)
+      break
+    while sensor.readTempC() > 65:   
+     GPIO.output(17,GPIO.HIGH) 
+     print 'Temperature Limit Exceeded'
+     print 'Thermocouple Temperature: {0:0.3F}*C / {1:0.3F}*F'.format(sensor.readTempC(), c_to_f(sensor.readTempC()))
+     time.sleep(5)
+     break
+    
+
+test = test - 1
+
+
+workbook = xlsxwriter.Workbook('Temperature Logger.xlsx', {'default_date_format':
+                                                  'mmm d yyyy hh:mm AM/PM'})
+worksheet = workbook.add_worksheet()
+
+
+worksheet.set_column('A:A', 20)
+worksheet.set_column('B:B', 45)
+
+
+
+bold = workbook.add_format({'bold': True})
+
+worksheet.write('A1', 'DATE/TIME', bold)
+worksheet.write('B1', 'TEMPERATURE', bold)
+worksheet.write('B2','Thermocouple Temperature: {0:0.3F}*C / {1:0.3F}*F'.format(sensor.readTempC(), c_to_f(sensor.readTempC()))
+)
+while sensor.readTempC() > 65: 
+      worksheet.write('A2',  'Temperature Limit Exceeded'
+     'Thermocouple Temperature: {0:0.3F}*C / {1:0.3F}*F'.format(sensor.readTempC(), c_to_f(sensor.readTempC())), bold)
+      
+date_time = datetime.now()
+worksheet.write_datetime('A2', date_time)
+
+
+
+workbook.close()
