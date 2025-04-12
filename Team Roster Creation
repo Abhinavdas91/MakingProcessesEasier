@@ -1,0 +1,54 @@
+import pandas as pd
+from datetime import date, timedelta
+import random
+
+def generate_employee_roster():
+    num_employees = int(input("Enter the number of employees: "))
+    year = int(input("Enter the year: "))
+    month = int(input("Enter the month: "))
+
+    # Create a list of dates for the given year and month
+    start_date = date(year, month, 1)
+    end_date = start_date.replace(day=28) + timedelta(days=3)
+    dates = pd.date_range(start_date, end_date, freq='D')
+
+    # Create an empty DataFrame to store the roster
+    roster = pd.DataFrame(columns=dates)
+
+    # Get the names of employees
+    employees = input("Enter the names of employees separated by commas: ").split(',')
+
+    # Validate the number of employees entered
+    if len(employees) != num_employees:
+        print("Error: The number of employees entered does not match the number of names provided.")
+        return None
+
+    # Generate the roster for each employee
+    for i in range(len(employees)):
+        employee_name = employees[i].strip()
+        employee_roster = []
+
+        # Generate random starting day for the week off
+        random_start_day = random.choice(range(7))  # Updated to include all days of the week
+
+        # Iterate over each date and assign shifts based on the conditions
+        for j, day in enumerate(dates):
+            if j % 7 == random_start_day or j % 7 == (random_start_day + 1) % 7:
+                # Assign week off
+                employee_roster.append("WO")
+            else:
+                # Assign work for all other days
+                employee_roster.append("09:00-18:00")
+
+        # Add the employee roster to the DataFrame
+        roster.loc[employee_name] = employee_roster
+
+    return roster
+
+roster = generate_employee_roster()
+
+if roster is not None:
+    # Export the roster to an Excel file
+    filename = f"Employee_Roster_{roster.columns[0].month}_{roster.columns[0].year}.xlsx"
+    roster.to_excel(filename)
+    print(f"Employee roster saved as {filename}")
